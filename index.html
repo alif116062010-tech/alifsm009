@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Try Out Alif</title>
+<style>
+body{margin:0;background:#f1f5f9;font-family:Arial,sans-serif;color:#172033}
+header{background:#142d5e;color:white;text-align:center;padding:25px}
+main{max-width:700px;margin:25px auto;padding:15px}
+.card{background:white;border-radius:16px;padding:22px;box-shadow:0 4px 18px #0001}
+button{border:0;border-radius:9px;padding:12px 16px;cursor:pointer;font-size:15px}
+.primary{background:#2457c5;color:white}
+.option{display:block;width:100%;text-align:left;margin:10px 0;background:#eef2ff;color:#172033;border:2px solid transparent}
+.option.selected{border-color:#2457c5;background:#dbeafe}
+.row{display:flex;justify-content:space-between;gap:10px;align-items:center}
+#timer{font-weight:bold;color:#c0392b}
+#numbers{display:flex;flex-wrap:wrap;gap:7px;margin:18px 0}
+.num{background:#e2e8f0;color:#172033}
+.num.done{background:#16a34a;color:white}
+.num.active{background:#2457c5;color:white}
+#result{font-size:18px;font-weight:bold;margin-top:20px}
+</style>
+</head>
+<body>
+<header>
+<h1>TRY OUT ALIF</h1>
+<p>Uji pengetahuanmu di sini!</p>
+</header>
+<main>
+<div class="card">
+<div class="row">
+<span id="number"></span>
+<span id="timer">10:00</span>
+</div>
+<hr>
+<h3 id="question"></h3>
+<div id="options"></div>
+<div id="numbers"></div>
+<div class="row">
+<button onclick="move(-1)">← Sebelumnya</button>
+<button class="primary" onclick="move(1)">Berikutnya →</button>
+</div>
+<hr>
+<button class="primary" onclick="finish()">Selesai & Lihat Nilai</button>
+<div id="result"></div>
+</div>
+</main>
+<script>
+const questions=[
+{q:"Diam aja disenggol, apalagi dikasih aksi...?",o:["Skripsi","Tetris","Aksi"],a:2},
+{q:"Alip tinggal di?",o:["Bumi","Indonesia","Emang penting?"],a:2},
+{q:"Klub terburuk sepanjang masa",o:["Man City","Man United","PSG"],a:0},
+{q:"Klub terbaik sepanjang masa",o:["Real Madrid","Madrid tak","Hala Madrid"],a:0},
+{q:"Pemain terbaik",o:["Vini","Vinicius","Vinicius Junior"],a:2}
+];
+let current=0;
+let answers=Array(questions.length).fill(-1);
+let remaining=600;
+let ended=false;
+const el=id=>document.getElementById(id);
+
+function render(){
+el("number").textContent=Soal ${current+1} dari ${questions.length};
+el("question").textContent=questions[current].q;
+el("options").innerHTML="";
+questions[current].o.forEach((option,i)=>{
+const b=document.createElement("button");
+b.className="option"+(answers[current]===i?" selected":"");
+b.textContent=String.fromCharCode(65+i)+". "+option;
+b.onclick=()=>{if(!ended){answers[current]=i;render()}};
+el("options").appendChild(b);
+});
+el("numbers").innerHTML="";
+questions.forEach((q,i)=>{
+const b=document.createElement("button");
+b.className="num"+(answers[i]>=0?" done":"")+(i===current?" active":"");
+b.textContent=i+1;
+b.onclick=()=>{if(!ended){current=i;render()}};
+el("numbers").appendChild(b);
+});
+}
+
+function move(n){
+if(ended)return;
+current=Math.max(0,Math.min(questions.length-1,current+n));
+render();
+}
+
+function finish(){
+if(ended)return;
+ended=true;
+clearInterval(clock);
+const score=answers.reduce((sum,a,i)=>sum+(a===questions[i].a?1:0),0);
+el("result").textContent=Nilai kamu: ${score*20}/100 — Benar ${score} dari 5 soal.;
+document.querySelectorAll("button").forEach(b=>b.disabled=true);
+const retry=document.createElement("button");
+retry.className="primary";
+retry.textContent="Ulangi Try Out";
+retry.onclick=()=>location.reload();
+el("result").appendChild(document.createElement("br"));
+el("result").appendChild(retry);
+}
+
+function tick(){
+if(ended)return;
+remaining--;
+el("timer").textContent=Math.floor(remaining/60)+":"+String(remaining%60).padStart(2,"0");
+if(remaining<=0)finish();
+}
+render();
+const clock=setInterval(tick,1000);
+</script>
+</body>
+</html>
